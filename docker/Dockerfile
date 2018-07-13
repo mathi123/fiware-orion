@@ -27,6 +27,7 @@ RUN \
       gcc-c++ \
       scons \
       tar \
+      cyrus-sasl-devel \
       which && \
     # Install libmicrohttpd from source
     curl -kOL http://ftp.gnu.org/gnu/libmicrohttpd/libmicrohttpd-0.9.48.tar.gz && \
@@ -40,7 +41,8 @@ RUN \
     curl -kOL https://github.com/mongodb/mongo-cxx-driver/archive/legacy-1.1.2.tar.gz && \
     tar xfz legacy-1.1.2.tar.gz && \
     cd mongo-cxx-driver-legacy-1.1.2 && \
-    scons install --prefix=/usr/local && \
+    scons --use-sasl-client --ssl && \
+    sudo scons install --prefix=/usr/local --use-sasl-client --ssl && \
     # Install rapidjson from source
     curl -kOL https://github.com/miloyip/rapidjson/archive/v1.0.2.tar.gz && \
     tar xfz v1.0.2.tar.gz && \
@@ -74,10 +76,10 @@ RUN \
            /usr/local/include/rapidjson \
            /opt/fiware-orion \
            # We don't need to manage Linux account passwords requisites: lenght, mays/mins, etc.
-           # This cannot be removed using yum as yum uses hard dependencies and doing so will 
+           # This cannot be removed using yum as yum uses hard dependencies and doing so will
            # uninstall essential packages
            /usr/share/cracklib \
-           # We don't need glibc locale data. This cannot be removed using yum as yum uses hard 
+           # We don't need glibc locale data. This cannot be removed using yum as yum uses hard
            # dependencies and doing so will uninstall essential packages
            /usr/share/i18n /usr/{lib,lib64}/gconv \
            && \
@@ -95,7 +97,7 @@ RUN \
         boost-program-options boost-math \
         openssh openssh-clients libedit hwdata dbus-glib fipscheck* *devel sysvinit-tools \
         && \
-    # Erase without dependencies of the document formatting system (man). This cannot be removed using yum 
+    # Erase without dependencies of the document formatting system (man). This cannot be removed using yum
     # as yum uses hard dependencies and doing so will uninstall essential packages
     rpm -qa groff | xargs -r rpm -e --nodeps && \
     # Clean yum data
@@ -105,7 +107,7 @@ RUN \
     # Delete unused locales. Only preserve en_US and the locale aliases
     find /usr/share/locale -mindepth 1 -maxdepth 1 ! -name 'en_US' ! -name 'locale.alias' | xargs -r rm -r && \
     bash -c 'localedef --list-archive | grep -v -e "en_US" | xargs localedef --delete-from-archive' && \
-    # We use cp instead of mv as to refresh locale changes for ssh connections. We use /bin/cp instead of 
+    # We use cp instead of mv as to refresh locale changes for ssh connections. We use /bin/cp instead of
     # cp to avoid any alias substitution, which in some cases has been problematic
     /bin/cp -f /usr/lib/locale/locale-archive /usr/lib/locale/locale-archive.tmpl && \
     build-locale-archive && \
