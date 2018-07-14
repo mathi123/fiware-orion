@@ -41,7 +41,7 @@ RUN \
     curl -kOL https://github.com/mongodb/mongo-cxx-driver/archive/legacy-1.1.2.tar.gz && \
     tar xfz legacy-1.1.2.tar.gz && \
     cd mongo-cxx-driver-legacy-1.1.2 && \
-    scons --use-sasl-client --ssl \
+    scons --use-sasl-client --ssl && \
     scons install --prefix=/usr/local --use-sasl-client --ssl && \
     # Install rapidjson from source
     curl -kOL https://github.com/miloyip/rapidjson/archive/v1.0.2.tar.gz && \
