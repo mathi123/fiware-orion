@@ -225,7 +225,10 @@ HttpStatusCode mongoEntityTypesValues
 
   std::string err;
 
-  if (!runCollectionCommand(composeDatabaseName(tenant), cmd, &result, &err))
+  DBClientBase* connection = getMongoConnection();
+  std::auto_ptr<DBClientCursor> cursor;
+
+  if (!collectionQuery(connection, composeDatabaseName(tenant), cmd, &cursor, &err))
   {
     responseP->statusCode.fill(SccReceiverInternalError, err);
     reqSemGive(__FUNCTION__, "query types request", reqSemTaken);
@@ -233,10 +236,21 @@ HttpStatusCode mongoEntityTypesValues
     return SccOk;
   }
 
-  // Processing result to build response
-  LM_T(LmtMongo, ("aggregation result: %s", result.toString().c_str()));
+  std::vector<BSONElement> resultsArray;
 
-  std::vector<BSONElement> resultsArray = getFieldF(getObjectFieldF(result, "cursor"), "firstBatch").Array();
+  while(cursor->more())
+  {
+    result = cursor->next();
+
+    std::vector<BSONElement> cursorArray = getFieldF(result, "result").Array();
+
+    // Processing result to build response
+    LM_T(LmtMongo, ("aggregation result: %s", result.toString().c_str()));
+
+    resultsArray.insert(resultsArray.end(), cursorArray.begin(), cursorArray.end() );
+  }
+
+  releaseMongoConnection(connection);
 
   if (resultsArray.size() == 0)
   {
@@ -384,7 +398,10 @@ HttpStatusCode mongoEntityTypes
 
   std::string err;
 
-  if (!runCollectionCommand(composeDatabaseName(tenant), cmd, &result, &err))
+  DBClientBase* connection = getMongoConnection();
+  std::auto_ptr<DBClientCursor> cursor;
+
+  if (!collectionQuery(connection, composeDatabaseName(tenant), cmd, &cursor, &err))
   {
     responseP->statusCode.fill(SccReceiverInternalError, err);
     reqSemGive(__FUNCTION__, "query types request", reqSemTaken);
@@ -392,10 +409,21 @@ HttpStatusCode mongoEntityTypes
     return SccOk;
   }
 
-  // Processing result to build response
-  LM_T(LmtMongo, ("aggregation result: %s", result.toString().c_str()));
+  std::vector<BSONElement> resultsArray;
 
-  std::vector<BSONElement> resultsArray = getFieldF(getObjectFieldF(result, "cursor"), "firstBatch").Array();
+  while(cursor->more())
+  {
+    result = cursor->next();
+
+    std::vector<BSONElement> cursorArray = getFieldF(result, "result").Array();
+
+    // Processing result to build response
+    LM_T(LmtMongo, ("aggregation result: %s", result.toString().c_str()));
+
+    resultsArray.insert(resultsArray.end(), cursorArray.begin(), cursorArray.end() );
+  }
+
+  releaseMongoConnection(connection);
 
   if (resultsArray.size() == 0)
   {
@@ -616,7 +644,11 @@ HttpStatusCode mongoAttributesForEntityType
            BSON("$sort" << BSON("_id" << 1))));
 
   std::string err;
-  if (!runCollectionCommand(composeDatabaseName(tenant), cmd, &result, &err))
+
+  DBClientBase* connection = getMongoConnection();
+  std::auto_ptr<DBClientCursor> cursor;
+
+  if (!collectionQuery(connection, composeDatabaseName(tenant), cmd, &cursor, &err))
   {
     responseP->statusCode.fill(SccReceiverInternalError, err);
     reqSemGive(__FUNCTION__, "query types request", reqSemTaken);
@@ -624,10 +656,21 @@ HttpStatusCode mongoAttributesForEntityType
     return SccOk;
   }
 
-  /* Processing result to build response */
-  LM_T(LmtMongo, ("aggregation result: %s", result.toString().c_str()));
+  std::vector<BSONElement> resultsArray;
 
-  std::vector<BSONElement> resultsArray = getFieldF(getObjectFieldF(result, "cursor"), "firstBatch").Array();
+  while(cursor->more())
+  {
+    result = cursor->next();
+
+    std::vector<BSONElement> cursorArray = getFieldF(result, "result").Array();
+
+    // Processing result to build response
+    LM_T(LmtMongo, ("aggregation result: %s", result.toString().c_str()));
+
+    resultsArray.insert(resultsArray.end(), cursorArray.begin(), cursorArray.end() );
+  }
+
+  releaseMongoConnection(connection);
 
   responseP->entityType.count = countEntities(tenant, servicePathV, entityType);
 
